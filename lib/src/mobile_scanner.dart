@@ -15,8 +15,8 @@ class MobileScanner extends StatefulWidget {
   /// [args] Information about the state of the MobileScanner widget
   final Function(Barcode barcode, MobileScannerArguments? args)? onDetect;
 
-  /// TODO: Function that gets called when the Widget is initialized. Can be usefull
-  /// to check wether the device has a torch(flash) or not.
+  /// TODO: Function that gets called when the Widget is initialized.
+  /// Can be usefull to check wether the device has a torch(flash) or not.
   ///
   /// [args] Information about the state of the MobileScanner widget
   // final Function(MobileScannerArguments args)? onInitialize;
@@ -27,14 +27,20 @@ class MobileScanner extends StatefulWidget {
   /// Set to false if you don't want duplicate scans.
   final bool allowDuplicates;
 
-  /// Create a [MobileScanner] with a [controller], the [controller] must has been initialized.
-  const MobileScanner(
-      {Key? key,
-      this.onDetect,
-      this.controller,
-      this.fit = BoxFit.cover,
-      this.allowDuplicates = false})
-      : super(key: key);
+  /// Function that has [MobileScannerArguments] and return a widget,
+  /// this widget will replace the default widget to give more customization.
+  final Widget Function(MobileScannerArguments? arguments)? child;
+
+  /// Create a [MobileScanner] with a [controller], the [controller]
+  /// must has been initialized.
+  const MobileScanner({
+    Key? key,
+    this.onDetect,
+    this.controller,
+    this.fit = BoxFit.cover,
+    this.child,
+    this.allowDuplicates = false,
+  }) : super(key: key);
 
   @override
   State<MobileScanner> createState() => _MobileScannerState();
@@ -81,12 +87,23 @@ class _MobileScannerState extends State<MobileScanner>
                 if (!widget.allowDuplicates) {
                   if (lastScanned != barcode.rawValue) {
                     lastScanned = barcode.rawValue;
-                    widget.onDetect!(barcode, value as MobileScannerArguments);
+                    widget.onDetect!(
+                      barcode,
+                      value as MobileScannerArguments,
+                    );
                   }
                 } else {
-                  widget.onDetect!(barcode, value as MobileScannerArguments);
+                  widget.onDetect!(
+                    barcode,
+                    value as MobileScannerArguments,
+                  );
                 }
               });
+
+              if (widget.child != null) {
+                return widget.child!(value);
+              }
+
               return ClipRect(
                 child: SizedBox(
                   width: MediaQuery.of(context).size.width,
